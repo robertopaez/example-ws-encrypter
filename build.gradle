@@ -1,0 +1,69 @@
+version = '0.1.0'
+defaultTasks 'clean','build'
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+sourceCompatibility = 1.8
+ext.rundeckPluginVersion= '2.0'
+ext.rundeckVersion= '3.0.x'
+ext.pluginClassNames='com.plugin.example.WorkflowStepExample,com.plugin.example.MyPasswordEncrypter'
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+configurations{
+    //declare custom pluginLibs configuration to include only libs for this plugin
+    pluginLibs
+
+    //declare compile to extend from pluginLibs so it inherits the dependencies
+    compile{
+        extendsFrom pluginLibs
+    }
+}
+
+dependencies {
+    compile 'org.rundeck:rundeck-core:3.1.0-SNAPSHOT'
+
+    pluginLibs 'org.bouncycastle:bcprov-jdk15on:1.52'
+    pluginLibs 'org.jasypt:jasypt:1.9.2'
+
+    testCompile 'junit:junit:4.12'
+    testCompile "org.codehaus.groovy:groovy-all:2.4.15"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+}
+
+// task to copy plugin libs to output/lib dir
+task copyToLib(type: Copy) {
+    into "$buildDir/output/lib"
+    from configurations.pluginLibs
+}
+
+jar {
+    from "$buildDir/output"
+
+    manifest {
+        def libList = configurations.pluginLibs.collect{'lib/'+it.name}.join(' ')
+
+        attributes 'Rundeck-Plugin-Classnames': pluginClassNames
+        attributes 'Rundeck-Plugin-File-Version': version
+        attributes 'Rundeck-Plugin-Name': 'MyWorkflowStepExample'
+        attributes 'Rundeck-Plugin-Description': 'Provide a short description of your plugin here.'
+        attributes 'Rundeck-Plugin-Rundeck-Compatibility-Version': '3.x'
+        attributes 'Rundeck-Plugin-Tags': 'java,notification'
+        attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
+        attributes 'Rundeck-Plugin-Libs': "${libList}"
+
+    }
+    dependsOn(copyToLib)
+
+    from("rundeck-verb-artifact.yaml") {
+        into("")
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.4.1'
+}
