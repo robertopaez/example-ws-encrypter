@@ -31,3 +31,4 @@ This is an example about how to use a Password Utility Plugin along with a workf
 
 
 ![example/image5.png](example/image5.png)
+![example/image6.png](example/image6.png)
