@@ -1,0 +1,34 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='password' />
+      </options>
+    </context>
+    <defaultTab>output</defaultTab>
+    <description></description>
+    <executionEnabled>true</executionEnabled>
+    <group>Encoding</group>
+    <id>908e7e99-c07d-4f5e-b95b-1dbc272da5de</id>
+    <loglevel>INFO</loglevel>
+    <name>CheckEncoding</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <scheduleEnabled>false</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <exec>echo "Password desencriptada: ${option.password}"</exec>
+      </command>
+      <command>
+        <step-plugin type='myworkflowstepexample'>
+          <configuration>
+            <entry key='ExampleFreeSelect' value='Blue' />
+            <entry key='encryptor' value='CustomEncryptor' />
+            <entry key='exampleBoolean' value='false' />
+            <entry key='password' value='${option.password}' />
+          </configuration>
+        </step-plugin>
+      </command>
+    </sequence>
+    <uuid>908e7e99-c07d-4f5e-b95b-1dbc272da5de</uuid>
+  </job>
+</joblist>
