@@ -1,5 +1,6 @@
 package com.plugin.example;
 
+import com.dtolabs.rundeck.core.encrypter.EncryptorResponse;
 import com.dtolabs.rundeck.core.encrypter.PasswordUtilityEncrypterPlugin;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
@@ -32,30 +33,11 @@ public class MyPasswordEncrypter implements PasswordUtilityEncrypterPlugin, Desc
     public static final String PROVIDER_TITLE="MyPasswordEncrypter";
     public static final String PROVIDER_DESCRIPTION="MyPasswordEncrypter TEst";
 
-
     static Description DESCRIPTION = DescriptionBuilder.builder()
             .name(PROVIDER_NAME)
             .title(PROVIDER_TITLE)
             .description(PROVIDER_DESCRIPTION)
             .property(PropertyUtil.string("value", "value", "value to encrypt", true, null))
-            .property(PropertyBuilder.builder()
-                          .booleanType("exampleBoolean")
-                          .title("Example Boolean")
-                          .description("Example Boolean?")
-                          .required(false)
-                          .defaultValue("false")
-                          .build()
-            )
-            .property(PropertyBuilder.builder()
-                          .freeSelect("exampleFreeSelect")
-                          .title("Example Free Select")
-                          .description("Example Free Select")
-                          .required(false)
-                          .defaultValue("Blue")
-                          .values("Blue", "Beige", "Black")
-                          .build()
-            )
-
             .build();
 
 
@@ -72,16 +54,27 @@ public class MyPasswordEncrypter implements PasswordUtilityEncrypterPlugin, Desc
      * The {@link config} map of parametes passing form gue GUI. the available keys are the one set on formProperties() (on this case the only one enable is called "value")
      */
     @Override
-    public Map encrypt(Map config) {
-        //get the value set on the GUI form
-        String valToEncrypt = (String) config.get("value");
+    public EncryptorResponse encrypt(Map config) {
 
-        String encryptedValue = encryptor.encrypt(valToEncrypt);
+        EncryptorResponseImpl result = new EncryptorResponseImpl();
 
-        //this will be returned to the page, this map will be printed on the GUI
-        Map<String, String> result = new HashMap();
-        result.put("original", valToEncrypt);
-        result.put("encrypted", "ENC('" + encryptedValue + "')");
+        try {
+            //get the value set on the GUI form
+            String valToEncrypt = (String) config.get("value");
+
+            String encryptedValue = encryptor.encrypt(valToEncrypt);
+            result.setValid(true);
+
+            //this will be returned to the page, this map will be printed on the GUI
+            Map<String, String> outputs = new HashMap();
+            outputs.put("original", valToEncrypt);
+            outputs.put("encrypted", "ENC('" + encryptedValue + "')");
+            result.setOuputs(outputs);
+
+        }catch (Exception e){
+            result.setValid(false);
+            result.setError(e.getMessage());
+        }
 
         return result;
     }
@@ -105,5 +98,39 @@ public class MyPasswordEncrypter implements PasswordUtilityEncrypterPlugin, Desc
     @Override
     public Description getDescription() {
         return DESCRIPTION;
+    }
+
+    class EncryptorResponseImpl implements EncryptorResponse{
+        boolean isValid;
+        String error;
+        Map<String, String> ouputs;
+
+        public void setValid(boolean valid) {
+            isValid = valid;
+        }
+
+        public void setError(String error) {
+            this.error = error;
+        }
+
+        public void setOuputs(Map<String, String> ouputs) {
+            this.ouputs = ouputs;
+        }
+
+        @Override
+        public boolean isValid() {
+            return isValid;
+        }
+
+        @Override
+        public String getError() {
+            return error;
+        }
+
+        @Override
+        public Map<String, String> getOutputs() {
+            return ouputs;
+        }
+
     }
 }
